@@ -1,9 +1,0 @@
-{
-  "pluginId": "neobase.claudecode",
-  "repo": "NDesumeur/neobase-plugin-claude-code",
-  "version": "1.0.0",
-  "sha256": "2e0fbb26a8501abe2e1843ae528d70e251ad53ca85aaf63ab66f52f99d200140",
-  "approvedAt": "2026-10-31T16:39:32.104Z",
-  "neobase": ">=4.0.0",
-  "signature": "RoZi6X22RmKVHZv8pCQwr2utO94QaRfh6GqvMjiJVFlhb6RDCjY/OEzCMBEO5d6ikkkOEeYQBkneM4lQZTIGDQ=="
-}

@@ -2,12 +2,55 @@
 // Ses données sont dans le dossier du plugin, que NeoBase sauvegarde (synchro cloud et sauvegardes) ; à la première ouverture elle reprend ce que tu avais dans NeoBase.
 // Elle demande l'accès complet pour utiliser les outils d'interface de NeoBase. NeoBase ne l'ouvre que si elle est signée.
 const HTML = "<div class=\"ccWrap\">\n      <aside class=\"ccSide\"><button class=\"btn main px\" id=\"ccNew\">+ NOUVELLE CONVERSATION</button><input class=\"f\" id=\"ccSearch\" placeholder=\"Chercher…\"><div id=\"ccList\" class=\"ccList\"></div><div class=\"hint\" id=\"ccStatus\"></div></aside>\n      <section class=\"ccMain\">\n        <div class=\"ccHead\"><b id=\"ccTitle\"></b><button class=\"ccChip\" id=\"ccDir\" title=\"Dossier du projet\"></button><select class=\"f gSel\" id=\"ccModel\" title=\"Modèle\"></select><select class=\"f gSel\" id=\"ccMode\" title=\"Ce que Claude peut faire sans demander\"></select></div>\n        <div id=\"ccMsgs\" class=\"ccMsgs\"></div>\n        <div class=\"ccCompose px\"><textarea id=\"ccIn\" rows=\"3\" placeholder=\"Écris à Claude…  (Entrée : envoyer · Maj+Entrée : nouvelle ligne)\"></textarea><button class=\"btn main px\" id=\"ccSend\">ENVOYER</button></div>\n      </section>\n    </div>";
+/*CSS-MOVED*/ const CSS = `.ccWrap{display:grid;grid-template-columns:270px 1fr;height:100%;min-height:0}
+.ccSide{display:flex;flex-direction:column;gap:8px;padding:14px 10px;border-right:3px solid var(--line);min-height:0}
+.ccList{flex:1;overflow:auto;display:flex;flex-direction:column;gap:2px}
+.ccItem{border:0;background:none;text-align:left;padding:8px 10px;color:var(--lilac);cursor:var(--cp,pointer);display:flex;flex-direction:column;font:14px var(--text)}
+.ccItem b{color:#fff;font-weight:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ccItem small{color:var(--muted);font-size:11px}
+.ccItem:hover{background:rgba(var(--pkr),.12)}
+.ccItem.on{background:rgba(var(--pkr),.25)}
+.ccItem.run b::before{content:"● ";color:#ffd07a}
+.ccMain{display:flex;flex-direction:column;min-height:0;min-width:0}
+.ccHead{display:flex;gap:8px;align-items:center;padding:10px 16px;border-bottom:3px solid var(--line)}
+.ccHead b{flex:1;font:13px var(--title);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ccHead select{width:auto;flex:none;max-width:210px}
+.ccChip{border:0;background:rgba(var(--pkr),.15);color:var(--lilac);padding:6px 10px;font:13px var(--text);max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:var(--cp,pointer)}
+.ccMsgs{flex:1;overflow:auto;padding:18px max(16px,calc((100% - 820px) / 2));display:flex;flex-direction:column;gap:12px}
+.ccMsg.user{align-self:flex-end;max-width:75%}
+.ccBubble{background:rgba(var(--pkr),.28);color:#fff;padding:10px 14px;white-space:pre-wrap;user-select:text}
+.ccMsg.claude{color:#ece4ff;user-select:text}
+.ccMd{font:16px/1.55 var(--text)}
+.ccMd :is(h1,h2,h3){font:14px var(--title);color:#fff;margin:14px 0 6px}
+.ccMd p{margin:0 0 8px}
+.ccMd a{color:#7fe0ee}
+.ccMd pre{position:relative;background:#05010b;padding:12px;overflow:auto;box-shadow:0 0 0 2px var(--line2)}
+.ccMd code{font:13px Consolas,monospace;color:#ffd0f4}
+.ccMd :not(pre)>code{background:#05010b;padding:1px 5px}
+.ccCopy{position:absolute;top:4px;right:4px;border:0;background:var(--line2);color:#fff;font:9px var(--title);padding:4px 6px;cursor:var(--cp,pointer);opacity:.6}
+.ccCopy:hover{opacity:1}
+.ccMeta{color:var(--muted);font-size:11px}
+.ccTool{background:rgba(var(--d8),.6);box-shadow:inset 3px 0 0 var(--line2);padding:6px 10px;font-size:13px;color:var(--lilac)}
+.ccTool summary{cursor:var(--cp,pointer);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ccTool summary b{color:#7fe0ee;font-weight:normal}
+.ccTool i{color:#8ee8a0;font-style:normal}
+.ccTool.err i{color:#ff7a8a}
+.ccTool pre{max-height:260px;overflow:auto;font:12px Consolas,monospace;color:#d9ccf6;white-space:pre-wrap;user-select:text}
+.ccDots{color:var(--magenta)}
+.ccEmpty{margin:auto;max-width:520px;text-align:center;color:var(--lilac);line-height:1.6}
+.ccEmpty b{font:14px var(--title);color:#fff}
+.ccCompose{display:flex;gap:10px;align-items:flex-end;margin:0 max(16px,calc((100% - 820px) / 2)) 16px;padding:10px;--fill:var(--win)}
+.ccCompose textarea{flex:1;background:transparent;border:0;color:#fff;font:15px var(--text);resize:none;outline:none}
+#ccSend.stop{background:#c42a3c}
+.gSel{width:auto;font-size:14px;padding:6px 10px;margin-right:8px}
+`;  // le style de ce plugin (il utilise les variables du thème de NeoBase)
 export default async function (ctx) {
   const view = ctx.view;
   if (!ctx.host) { view.textContent = "Ce plugin doit être approuvé par NeoBase pour s'ouvrir."; return; }
   const host = ctx.host, { el, toast, sfx, ask, newTab, pixIcon, PIX, WX } = host;
   const nbConfirm = host.confirm;  // la boîte de confirmation de NeoBase, à la place de celle de Windows
   const folder = ctx.folder, legacy = ctx.legacy || {};
+  ctx.host.addStyle(CSS);
   view.innerHTML = HTML;
   const $ = id => id === "claudeApp" ? view : (view.querySelector('#' + id) || document.getElementById(id));  // les identifiants de ta vue d'abord, puis ceux de la page (fenêtres, menus)
   const doc = async n => { try { return await folder.read(n); } catch { return null; } };

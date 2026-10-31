@@ -1,7 +1,7 @@
 {
   "id": "neobase.claudecode",
   "name": "Claude Code",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "NDesumeur",
   "description": "Claude Code installé sur ton PC dans une fenêtre type Claude Desktop : conversations, outils en cartes, dossier de projet.",
   "icon": "icon.png",
