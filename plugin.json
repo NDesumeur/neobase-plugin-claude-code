@@ -1,0 +1,19 @@
+{
+  "id": "neobase.claudecode",
+  "name": "Claude Code",
+  "version": "1.0.0",
+  "author": "NDesumeur",
+  "description": "Claude Code installé sur ton PC dans une fenêtre type Claude Desktop : conversations, outils en cartes, dossier de projet.",
+  "icon": "icon.png",
+  "entry": "index.js",
+  "view": "claude-code",
+  "neobase": ">=4.0.0",
+  "type": "app",
+  "category": "Outils",
+  "mobile": false,
+  "system": false,
+  "dependencies": {},
+  "permissions": [
+    "full"
+  ]
+}
